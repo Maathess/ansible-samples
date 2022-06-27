@@ -1,0 +1,8 @@
+
+- name: Print test
+  debug:
+    msg: "Here are the results"
+
+- name: Print var
+  debug:
+    var: tmp_file

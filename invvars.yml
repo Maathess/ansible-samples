@@ -1,0 +1,10 @@
+
+---
+- hosts: test
+
+  tasks:
+    - name: Create a file
+      file:
+       dest: '{{tmp_file}}'
+       state: '{{file_state}}'
+      when: tmp_file is defined
