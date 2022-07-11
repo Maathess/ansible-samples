@@ -1,9 +1,0 @@
-[test]
-localhost
-
-[all:vars]
-tmp_file=/tmp/newtest1
-
-[test:vars]
-tmp_file=/tmp/newtest2
-
