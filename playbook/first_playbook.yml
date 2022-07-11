@@ -1,45 +1,63 @@
 
 ---
-- hosts: localhost
+- name : Manage Docker instances via Ansible
+  hosts: localhost
   become: yes
 
   tasks:
     - name: Build python app1 image
-      shell: cd C:/Users/Maathess/Desktop/esgi/4a/S2/DevOps/projet/ansible-samples/app/python_app1 -t pythonapp1:0.1 .
+      shell: cd /home/maathess/Bureau/devops/ansible-samples/app/python_app1 && sudo docker build -t pythonapp1:0.1 .
       tags:
         - python
         - build
 
-
-
-    - name: Build python app image
-      shell: cd C:/Users/Maathess/Desktop/esgi/4a/S2/DevOps/projet/ansible-samples/app/python_app2 -t pythonapp2:0.1 .
+    - name: Build python app2 image
+      shell: cd /home/maathess/Bureau/devops/ansible-samples/app/python_app2 && sudo docker build -t pythonapp2:0.1 .
       tags:
         - python
         - build
+      
+#ElasticSearch
+
+    - name: Run ES container
+      shell: cd /home/maathess/Bureau/devops/ansible-samples/Elasticsearch && sudo docker-compose up -d
+      tags:
+        - build
+
+#MySQL
+    - name: start up the mysql service
+      shell: "service mysql start"   
+
+    - name: ensure mysql is enabled to run on startup
+      service: name=mysql state=started enabled=true
+        
+    - name: create a new database
+      mysql_db: name=devops state=present login_user=admin login_password=admin
+        	
+    - name: add sample data to database 
+      copy: src=dump.sql dest=/tmp/dump.sql    	
+ 
+    - name: insert sample data into database
+      mysql_db: name=devops state=import target=/tmp/dump.sql login_user=admin login_password=admin
 
 
-    - name: Run python app container
-      shell: docker run -d -p 5001:5000 --name pyapp  pythonapp1:0.1
+#Python Apps run
+    - name: Run python app1 container
+      shell: cd /home/maathess/Bureau/devops/ansible-samples/app/python_app1 && sudo docker run -p 5001:5000 -d --name pyapp1  pythonapp1:0.1
       tags:
         - run
 
-    - name: Run python app container
-        shell: docker run -d -p 5001:5000 --name pyapp  pythonapp2:0.1
-        tags:
-          - run
-
+    - name: Run python app2 container
+      shell: cd /home/maathess/Bureau/devops/ansible-samples/app/python_app2 && sudo docker run -d --name pyapp2  pythonapp2:0.1
+      tags:	
+        - run
 
 
     - name: check
       uri:
-        url: http://192.168.177.170:8061/fsfs
+        url: http://localhost:5001/
         method: GET
         status_code: 200
       tags:
         - check
-
-  roles:
-  - first_role
-
 
